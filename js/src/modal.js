@@ -95,6 +95,7 @@ class Modal {
     this._dialog = SelectorEngine.findOne(Selector.DIALOG, element)
     this._backdrop = null
     this._isShown = false
+    this._lastQuery = null
     this._isBodyOverflowing = false
     this._ignoreBackdropClick = false
     this._isTransitioning = false
@@ -115,10 +116,16 @@ class Modal {
   // Public
 
   toggle(relatedTarget) {
-    return this._isShown ? this.hide() : this.show(relatedTarget)
+    
+    if( this._lastQuery === null)
+      return this._isShown ? this.hide() : this.show(relatedTarget)
+    return this._lastQuery[0] === 'show' ? this.hide() : this.show(relatedTarget)
   }
 
   show(relatedTarget) {
+    
+    this._lastQuery = ['show', relatedTarget];
+    
     if (this._isShown || this._isTransitioning) {
       return
     }
@@ -163,6 +170,9 @@ class Modal {
   }
 
   hide(event) {
+    
+    this._lastQuery = ['hide', event];
+    
     if (event) {
       event.preventDefault()
     }
@@ -282,6 +292,9 @@ class Modal {
       EventHandler.trigger(this._element, Event.SHOWN, {
         relatedTarget
       })
+      
+      if(this._lastQuery[0] === 'hide')
+        this.hide(this._lastQuery[1]);
     }
 
     if (transition) {
@@ -338,6 +351,9 @@ class Modal {
       this._resetAdjustments()
       this._resetScrollbar()
       EventHandler.trigger(this._element, Event.HIDDEN)
+      
+      if(this._lastQuery[0] === 'show')
+        this.show(this._lastQuery[1]);
     })
   }
 
